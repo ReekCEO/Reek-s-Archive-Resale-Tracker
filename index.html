@@ -31,12 +31,13 @@
 -->
 <script>
   const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyB3C-_5JBLUHGYtG8aBAnOTJgv5e6jDrGE",
-    authDomain: "resale-training--log.firebaseapp.com",
-    projectId: "resale-training--log",
-    storageBucket: "resale-training--log.firebasestorage.app",
-    messagingSenderId: "348611822555",
-    appId: "1:348611822555:web:2c3eb38e7e48486bf85dfe"
+  apiKey: "AIzaSyB3C-_5JBLUHGYtG8aBAnOTJgv5e6jDrGE",
+  authDomain: "resale-training--log.firebaseapp.com",
+  projectId: "resale-training--log",
+  storageBucket: "resale-training--log.firebasestorage.app",
+  messagingSenderId: "348611822555",
+  appId: "1:348611822555:web:2c3eb38e7e48486bf85dfe",
+  measurementId: "G-6SW327T54S"
   };
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -179,7 +180,7 @@ body { margin: 0; background: #F7F3EA; }
 }
 .rt-stat-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 14px;
 }
 .rt-stat {
@@ -421,6 +422,138 @@ body { margin: 0; background: #F7F3EA; }
 }
 .rt-instructions h4:first-child { margin-top: 0; }
 .rt-instructions p { margin: 0 0 6px; color: rgba(30,27,24,0.8); }
+
+/* CLOCK */
+.rt-clock-panel {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: var(--asphalt);
+  border-radius: 6px;
+  padding: 18px 22px;
+  margin-bottom: 14px;
+}
+.rt-clock-btn {
+  position: relative;
+  overflow: hidden;
+  background: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 28px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.3s ease;
+}
+.rt-clock-btn:active { transform: scale(0.94); }
+.rt-clock-btn.running {
+  background: var(--clay);
+  animation: rtPulseGlow 1.6s ease-in-out infinite;
+}
+@keyframes rtPulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184,69,31,0.55); }
+  50% { box-shadow: 0 0 0 10px rgba(184,69,31,0); }
+}
+.rt-clock-timer {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 26px;
+  color: var(--chalk);
+  min-width: 110px;
+}
+.rt-clock-stats {
+  display: flex;
+  gap: 20px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.rt-clock-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.rt-clock-stat span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  color: var(--chalk);
+  font-weight: 600;
+}
+.rt-clock-stat label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(247,243,234,0.5);
+}
+.rt-session-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--line);
+  color: rgba(30,27,24,0.7);
+}
+.rt-session-empty {
+  font-size: 12.5px;
+  color: rgba(30,27,24,0.45);
+  padding: 8px 4px;
+}
+
+/* CLICK / RIPPLE ANIMATIONS */
+.rt-btn, .rt-status, .rt-del, .rt-clock-btn {
+  position: relative;
+  overflow: hidden;
+}
+.rt-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  transform: scale(0);
+  animation: rtRipple 0.55s ease-out;
+  pointer-events: none;
+}
+@keyframes rtRipple {
+  to { transform: scale(2.8); opacity: 0; }
+}
+.rt-btn { transition: transform 0.12s ease; }
+.rt-btn:active { transform: scale(0.95); }
+.rt-status { transition: transform 0.2s cubic-bezier(.34,1.56,.64,1); }
+.rt-status.rt-pop { animation: rtPop 0.35s cubic-bezier(.34,1.56,.64,1); }
+@keyframes rtPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.rt-del { transition: transform 0.15s ease, color 0.15s ease; }
+.rt-del:active { transform: scale(0.8) rotate(-10deg); }
+.rt-task {
+  transition: transform 0.12s ease;
+}
+.rt-task:active { transform: scale(0.97); }
+.rt-task input {
+  transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+}
+.rt-task input:checked {
+  transform: scale(1.15);
+}
+.rt-section {
+  transition: background-color 0.3s ease;
+}
+.rt-day {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.rt-day:hover {
+  box-shadow: 0 3px 10px rgba(30,27,24,0.08);
+  transform: translateY(-2px);
+}
+.rt-marker, .rt-marker-dot {
+  transition: left 0.6s cubic-bezier(.34,1.2,.4,1);
+}
+.rt-stat-num {
+  transition: transform 0.25s ease;
+}
+.rt-stat-num.rt-bump { transform: scale(1.18); }
 </style>
 </head>
 <body>
@@ -449,6 +582,7 @@ body { margin: 0; background: #F7F3EA; }
       <div class="rt-stat"><div class="rt-stat-num" id="statSold">0</div><div class="rt-stat-label">Sold</div></div>
       <div class="rt-stat"><div class="rt-stat-num" id="statRevenue">$0</div><div class="rt-stat-label">Revenue</div></div>
       <div class="rt-stat"><div class="rt-stat-num" id="statProfit">$0</div><div class="rt-stat-label">Profit</div></div>
+      <div class="rt-stat"><div class="rt-stat-num" id="statHours">0h</div><div class="rt-stat-label">Hrs This Wk</div></div>
     </div>
   </div>
 
@@ -480,6 +614,21 @@ body { margin: 0; background: #F7F3EA; }
   </div>
 
   <div class="rt-section">
+    <div class="rt-section-title">Time Clock</div>
+    <div class="rt-section-sub">Clock in when you start sourcing, listing, shipping, or content work. This is the number that tells you your real hourly rate later.</div>
+    <div class="rt-clock-panel">
+      <button class="rt-clock-btn" id="rtClockBtn">Clock In</button>
+      <div class="rt-clock-timer" id="rtClockTimer">00:00:00</div>
+      <div class="rt-clock-stats">
+        <div class="rt-clock-stat"><span id="clockToday">0h 0m</span><label>Today</label></div>
+        <div class="rt-clock-stat"><span id="clockWeek">0h 0m</span><label>This Week</label></div>
+        <div class="rt-clock-stat"><span id="clockAll">0h 0m</span><label>All Time</label></div>
+      </div>
+    </div>
+    <div id="rtSessionsWrap"></div>
+  </div>
+
+  <div class="rt-section">
     <div class="rt-section-title">Phase Instructions</div>
     <div class="rt-instructions">
       <h4>Phase 1 &mdash; Blocks (now)</h4>
@@ -504,8 +653,14 @@ body { margin: 0; background: #F7F3EA; }
       <input type="text" id="fName" placeholder="Item name">
       <select id="fCategory">
         <option>Footwear</option>
-        <option>Apparel</option>
+        <option>Streetwear Tops</option>
+        <option>Streetwear Bottoms</option>
+        <option>Outerwear</option>
+        <option>Activewear</option>
+        <option>Headwear</option>
+        <option>Bags</option>
         <option>Accessories</option>
+        <option>Collectibles</option>
         <option>Other</option>
       </select>
       <input type="number" id="fCost" placeholder="Cost $" step="0.01">
@@ -586,6 +741,9 @@ auth.onAuthStateChanged(async (user) => {
   let items = [];
   let thresholds = { phase2: 5, phase3: 18 };
   let checklist = {};
+  let sessions = [];
+  let activeSession = null;
+  let timerInterval = null;
 
   function getWeekKey(d) {
     const date = new Date(d.getTime());
@@ -609,14 +767,17 @@ auth.onAuthStateChanged(async (user) => {
         items = data.items || [];
         thresholds = data.thresholds || { phase2: 5, phase3: 18 };
         checklist = (data.checklists && data.checklists[weekKey]) || {};
+        sessions = data.sessions || [];
+        activeSession = data.activeSession || null;
       } else {
-        items = []; thresholds = { phase2: 5, phase3: 18 }; checklist = {};
+        items = []; thresholds = { phase2: 5, phase3: 18 }; checklist = {}; sessions = []; activeSession = null;
       }
     } catch (e) {
       console.error('Load failed:', e);
-      items = []; thresholds = { phase2: 5, phase3: 18 }; checklist = {};
+      items = []; thresholds = { phase2: 5, phase3: 18 }; checklist = {}; sessions = []; activeSession = null;
     }
     render();
+    if (activeSession) startTimerTick();
   }
 
   async function saveItems() {
@@ -630,6 +791,9 @@ auth.onAuthStateChanged(async (user) => {
       const field = 'checklists.' + weekKey;
       await stateDoc().set({ checklists: { [weekKey]: checklist } }, { merge: true });
     } catch (e) { console.error(e); }
+  }
+  async function saveClock() {
+    try { await stateDoc().set({ sessions, activeSession }, { merge: true }); } catch (e) { console.error(e); }
   }
 
   function fmt(n) {
@@ -731,6 +895,7 @@ auth.onAuthStateChanged(async (user) => {
           item.status = 'sold';
           item.soldDate = new Date().toISOString();
         }
+        btn.classList.add('rt-pop');
         saveItems();
         render();
       });
@@ -744,12 +909,125 @@ auth.onAuthStateChanged(async (user) => {
     });
   }
 
+  function isSameDay(a, b) {
+    const da = new Date(a), db = new Date(b);
+    return da.toDateString() === db.toDateString();
+  }
+  function isSameWeek(a, b) {
+    return getWeekKey(new Date(a)) === getWeekKey(new Date(b));
+  }
+  function formatHM(minutes) {
+    const h = Math.floor(minutes / 60);
+    const m = Math.round(minutes % 60);
+    return h + 'h ' + m + 'm';
+  }
+  function formatHMS(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+    const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    return h + ':' + m + ':' + s;
+  }
+
+  function renderClock() {
+    const btn = document.getElementById('rtClockBtn');
+    const timerEl = document.getElementById('rtClockTimer');
+    const now = new Date();
+
+    if (activeSession) {
+      btn.textContent = 'Clock Out';
+      btn.classList.add('running');
+      timerEl.textContent = formatHMS(now - new Date(activeSession.start));
+    } else {
+      btn.textContent = 'Clock In';
+      btn.classList.remove('running');
+      timerEl.textContent = '00:00:00';
+    }
+
+    const completed = sessions.filter(s => s.end);
+    let todayMin = 0, weekMin = 0, allMin = 0;
+    completed.forEach(s => {
+      allMin += s.durationMinutes;
+      if (isSameDay(s.start, now)) todayMin += s.durationMinutes;
+      if (isSameWeek(s.start, now)) weekMin += s.durationMinutes;
+    });
+    if (activeSession) {
+      const liveMin = (now - new Date(activeSession.start)) / 60000;
+      allMin += liveMin;
+      if (isSameDay(activeSession.start, now)) todayMin += liveMin;
+      if (isSameWeek(activeSession.start, now)) weekMin += liveMin;
+    }
+    document.getElementById('clockToday').textContent = formatHM(todayMin);
+    document.getElementById('clockWeek').textContent = formatHM(weekMin);
+    document.getElementById('clockAll').textContent = formatHM(allMin);
+    document.getElementById('statHours').textContent = Math.round(weekMin / 60 * 10) / 10 + 'h';
+
+    const wrap = document.getElementById('rtSessionsWrap');
+    if (completed.length === 0) {
+      wrap.innerHTML = '<div class="rt-session-empty">No completed sessions yet.</div>';
+    } else {
+      let html = '';
+      completed.slice(-5).reverse().forEach(s => {
+        const d = new Date(s.start);
+        html += '<div class="rt-session-row"><span>' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</span><span>' + formatHM(s.durationMinutes) + '</span></div>';
+      });
+      wrap.innerHTML = html;
+    }
+  }
+
+  function startTimerTick() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(renderClock, 1000);
+  }
+  function stopTimerTick() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  function toggleClock() {
+    if (activeSession) {
+      const start = new Date(activeSession.start);
+      const end = new Date();
+      const durationMinutes = (end - start) / 60000;
+      sessions.push({ id: 'sess-' + Date.now(), start: activeSession.start, end: end.toISOString(), durationMinutes });
+      activeSession = null;
+      stopTimerTick();
+    } else {
+      activeSession = { start: new Date().toISOString() };
+      startTimerTick();
+    }
+    saveClock();
+    renderClock();
+  }
+
   function render() {
     const soldCount = renderStats();
     renderTrack(soldCount);
+    renderClock();
     renderWeek();
     renderTable();
   }
+
+  document.getElementById('rtClockBtn').addEventListener('click', toggleClock);
+
+  function addRipple(el, evt) {
+    const rect = el.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const ripple = document.createElement('span');
+    ripple.className = 'rt-ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    const x = (evt.clientX || rect.left + rect.width / 2) - rect.left - size / 2;
+    const y = (evt.clientY || rect.top + rect.height / 2) - rect.top - size / 2;
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    el.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 550);
+  }
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('.rt-btn, .rt-status, .rt-del, .rt-clock-btn');
+    if (target) addRipple(target, e);
+  });
+
 
   document.getElementById('fAdd').addEventListener('click', () => {
     const name = document.getElementById('fName').value.trim();

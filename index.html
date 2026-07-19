@@ -30,7 +30,7 @@
   ============================================================
 -->
 <script>
-const FIREBASE_CONFIG = {
+ const FIREBASE_CONFIG = {
   apiKey: "AIzaSyB3C-_5JBLUHGYtG8aBAnOTJgv5e6jDrGE",
   authDomain: "resale-training--log.firebaseapp.com",
   projectId: "resale-training--log",
@@ -621,6 +621,31 @@ body { margin: 0; background: #F0F5F1; }
   padding: 4px 0;
 }
 
+/* INLINE EDITABLE TABLE FIELDS */
+.rt-edit-field {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 4px 6px;
+  background: transparent;
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--asphalt);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.rt-edit-field:hover {
+  border-color: var(--line);
+  background: white;
+}
+.rt-edit-field:focus {
+  border-color: var(--clay);
+  background: white;
+  outline: none;
+}
+.rt-edit-num { text-align: right; }
+td.rt-edit-td { padding: 4px; }
+
 /* CLICK / RIPPLE ANIMATIONS */
 .rt-btn, .rt-status, .rt-del, .rt-clock-btn, .rt-tab, .rt-del-session {
   position: relative;
@@ -895,6 +920,9 @@ auth.onAuthStateChanged(async (user) => {
     { key: 'sun', name: 'SUN', tasks: ['Review dashboard stats', 'Plan next week\'s sourcing list'] }
   ];
 
+  const CATEGORIES = ['Footwear', 'Streetwear Tops', 'Streetwear Bottoms', 'Outerwear', 'Activewear', 'Headwear', 'Bags', 'Accessories', 'Collectibles', 'Other'];
+  const PLATFORMS = ['Mercari', 'Depop', 'eBay', 'Poshmark', 'Other'];
+
   let items = [];
   let thresholds = { phase2: 5, phase3: 18 };
   let checklist = {};
@@ -1020,6 +1048,10 @@ auth.onAuthStateChanged(async (user) => {
     return Math.round((new Date(b) - new Date(a)) / 86400000);
   }
 
+  function selectOptions(list, selected) {
+    return list.map(opt => '<option' + (opt === selected ? ' selected' : '') + '>' + opt + '</option>').join('');
+  }
+
   function renderTable() {
     const wrap = document.getElementById('rtTableWrap');
     if (items.length === 0) {
@@ -1029,12 +1061,12 @@ auth.onAuthStateChanged(async (user) => {
     let html = '<table class="rt-table"><thead><tr><th>Item</th><th>Category</th><th>Platform</th><th>Cost</th><th>List Price</th><th>Status</th><th>Days Listed</th><th></th></tr></thead><tbody>';
     items.slice().reverse().forEach(item => {
       const daysListed = daysBetween(item.listDate, item.status === 'sold' ? item.soldDate : new Date().toISOString());
-      html += '<tr>' +
-        '<td>' + item.name + '</td>' +
-        '<td>' + item.category + '</td>' +
-        '<td>' + (item.platform || 'Unspecified') + '</td>' +
-        '<td>' + fmt(item.cost) + '</td>' +
-        '<td>' + fmt(item.price) + '</td>' +
+      html += '<tr data-id="' + item.id + '">' +
+        '<td class="rt-edit-td"><input class="rt-edit-field rt-edit-name" data-field="name" data-id="' + item.id + '" value="' + item.name.replace(/"/g, '&quot;') + '"></td>' +
+        '<td class="rt-edit-td"><select class="rt-edit-field rt-edit-category" data-field="category" data-id="' + item.id + '">' + selectOptions(CATEGORIES, item.category) + '</select></td>' +
+        '<td class="rt-edit-td"><select class="rt-edit-field rt-edit-platform" data-field="platform" data-id="' + item.id + '">' + selectOptions(PLATFORMS, item.platform || 'Mercari') + '</select></td>' +
+        '<td class="rt-edit-td"><input class="rt-edit-field rt-edit-num" type="number" step="0.01" data-field="cost" data-id="' + item.id + '" value="' + item.cost + '"></td>' +
+        '<td class="rt-edit-td"><input class="rt-edit-field rt-edit-num" type="number" step="0.01" data-field="price" data-id="' + item.id + '" value="' + item.price + '"></td>' +
         '<td><button class="rt-status ' + (item.status === 'sold' ? 'rt-status-sold' : 'rt-status-listed') + '" data-id="' + item.id + '">' + (item.status === 'sold' ? 'SOLD' : 'LISTED') + '</button></td>' +
         '<td>' + daysListed + '</td>' +
         '<td><button class="rt-del" data-id="' + item.id + '">&times;</button></td>' +
@@ -1042,6 +1074,22 @@ auth.onAuthStateChanged(async (user) => {
     });
     html += '</tbody></table>';
     wrap.innerHTML = html;
+
+    wrap.querySelectorAll('.rt-edit-field').forEach(field => {
+      field.addEventListener('change', (e) => {
+        const item = items.find(i => i.id === e.target.dataset.id);
+        if (!item) return;
+        const key = e.target.dataset.field;
+        if (key === 'cost' || key === 'price') {
+          item[key] = parseFloat(e.target.value) || 0;
+        } else {
+          item[key] = e.target.value.trim() || item[key];
+        }
+        saveItems();
+        renderStats();
+        renderTrack(items.filter(i => i.status === 'sold').length);
+      });
+    });
 
     wrap.querySelectorAll('.rt-status').forEach(btn => {
       btn.addEventListener('click', () => {

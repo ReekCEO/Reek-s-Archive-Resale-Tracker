@@ -30,14 +30,14 @@
   ============================================================
 -->
 <script>
-const FIREBASE_CONFIG = {
+ const firebaseConfig = {
   apiKey: "AIzaSyB3C-_5JBLUHGYtG8aBAnOTJgv5e6jDrGE",
   authDomain: "resale-training--log.firebaseapp.com",
   projectId: "resale-training--log",
   storageBucket: "resale-training--log.firebasestorage.app",
   messagingSenderId: "348611822555",
-  appId: "1:348611822555:web:2c3eb38e7e48486bf85dfe",
-};
+  appId: "1:348611822555:web:2c3eb38e7e48486bf85dfe"
+  };
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -334,7 +334,7 @@ body { margin: 0; background: #F0F5F1; }
 /* ITEM LOG */
 .rt-form {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
   gap: 8px;
   margin-bottom: 18px;
 }
@@ -580,6 +580,47 @@ body { margin: 0; background: #F0F5F1; }
 .rt-del-session:hover { color: var(--clay); }
 .rt-del-session:active { transform: scale(0.8) rotate(-10deg); }
 
+/* PLATFORMS */
+.rt-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+.rt-platform-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--clay);
+  border-radius: 5px;
+  padding: 14px 16px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.rt-platform-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11,14,12,0.08);
+}
+.rt-platform-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+.rt-platform-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 3px 0;
+  color: rgba(11,14,12,0.65);
+}
+.rt-platform-row b {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--asphalt);
+}
+.rt-platform-empty {
+  font-size: 12px;
+  color: rgba(11,14,12,0.4);
+  padding: 4px 0;
+}
+
 /* CLICK / RIPPLE ANIMATIONS */
 .rt-btn, .rt-status, .rt-del, .rt-clock-btn, .rt-tab, .rt-del-session {
   position: relative;
@@ -669,6 +710,7 @@ body { margin: 0; background: #F0F5F1; }
   <div class="rt-nav">
     <button class="rt-tab active" id="tabDashboard">Dashboard</button>
     <button class="rt-tab" id="tabClock">Time Clock</button>
+    <button class="rt-tab" id="tabPlatforms">Platforms</button>
   </div>
 
   <div id="pageDashboard">
@@ -736,6 +778,13 @@ body { margin: 0; background: #F0F5F1; }
         <option>Collectibles</option>
         <option>Other</option>
       </select>
+      <select id="fPlatform">
+        <option>Mercari</option>
+        <option>Depop</option>
+        <option>eBay</option>
+        <option>Poshmark</option>
+        <option>Other</option>
+      </select>
       <input type="number" id="fCost" placeholder="Cost $" step="0.01">
       <input type="number" id="fPrice" placeholder="List price $" step="0.01">
       <button class="rt-btn" id="fAdd">Add</button>
@@ -768,6 +817,14 @@ body { margin: 0; background: #F0F5F1; }
       <div id="rtSessionsWrap"></div>
     </div>
 
+  </div>
+
+  <div id="pagePlatforms" class="rt-hidden">
+    <div class="rt-section">
+      <div class="rt-section-title">Platform Breakdown</div>
+      <div class="rt-section-sub">Pulled automatically from the Platform field on each item in your log &mdash; no separate entry needed. Tag items by platform in the Item Log and they'll show up here.</div>
+      <div class="rt-platform-grid" id="rtPlatformGrid"></div>
+    </div>
   </div>
 
 </div>
@@ -969,12 +1026,13 @@ auth.onAuthStateChanged(async (user) => {
       wrap.innerHTML = '<div class="rt-empty">No items yet. Add your first listing above to start the log.</div>';
       return;
     }
-    let html = '<table class="rt-table"><thead><tr><th>Item</th><th>Category</th><th>Cost</th><th>List Price</th><th>Status</th><th>Days Listed</th><th></th></tr></thead><tbody>';
+    let html = '<table class="rt-table"><thead><tr><th>Item</th><th>Category</th><th>Platform</th><th>Cost</th><th>List Price</th><th>Status</th><th>Days Listed</th><th></th></tr></thead><tbody>';
     items.slice().reverse().forEach(item => {
       const daysListed = daysBetween(item.listDate, item.status === 'sold' ? item.soldDate : new Date().toISOString());
       html += '<tr>' +
         '<td>' + item.name + '</td>' +
         '<td>' + item.category + '</td>' +
+        '<td>' + (item.platform || 'Unspecified') + '</td>' +
         '<td>' + fmt(item.cost) + '</td>' +
         '<td>' + fmt(item.price) + '</td>' +
         '<td><button class="rt-status ' + (item.status === 'sold' ? 'rt-status-sold' : 'rt-status-listed') + '" data-id="' + item.id + '">' + (item.status === 'sold' ? 'SOLD' : 'LISTED') + '</button></td>' +
@@ -1176,23 +1234,58 @@ auth.onAuthStateChanged(async (user) => {
 
   const tabDashboard = document.getElementById('tabDashboard');
   const tabClock = document.getElementById('tabClock');
+  const tabPlatforms = document.getElementById('tabPlatforms');
   const pageDashboard = document.getElementById('pageDashboard');
   const pageClock = document.getElementById('pageClock');
+  const pagePlatforms = document.getElementById('pagePlatforms');
   function showPage(page) {
+    pageDashboard.classList.add('rt-hidden');
+    pageClock.classList.add('rt-hidden');
+    pagePlatforms.classList.add('rt-hidden');
+    tabDashboard.classList.remove('active');
+    tabClock.classList.remove('active');
+    tabPlatforms.classList.remove('active');
     if (page === 'clock') {
-      pageDashboard.classList.add('rt-hidden');
       pageClock.classList.remove('rt-hidden');
       tabClock.classList.add('active');
-      tabDashboard.classList.remove('active');
+    } else if (page === 'platforms') {
+      pagePlatforms.classList.remove('rt-hidden');
+      tabPlatforms.classList.add('active');
+      renderPlatforms();
     } else {
       pageDashboard.classList.remove('rt-hidden');
-      pageClock.classList.add('rt-hidden');
       tabDashboard.classList.add('active');
-      tabClock.classList.remove('active');
     }
   }
   tabDashboard.addEventListener('click', () => showPage('dashboard'));
   tabClock.addEventListener('click', () => showPage('clock'));
+  tabPlatforms.addEventListener('click', () => showPage('platforms'));
+
+  function renderPlatforms() {
+    const grid = document.getElementById('rtPlatformGrid');
+    const platforms = ['Mercari', 'Depop', 'eBay', 'Poshmark', 'Other'];
+    let html = '';
+    platforms.forEach(p => {
+      const pItems = items.filter(i => (i.platform || 'Unspecified') === p);
+      const sold = pItems.filter(i => i.status === 'sold');
+      const revenue = sold.reduce((s, i) => s + (parseFloat(i.price) || 0), 0);
+      const cost = sold.reduce((s, i) => s + (parseFloat(i.cost) || 0), 0);
+      const sellThrough = pItems.length ? Math.round((sold.length / pItems.length) * 100) : 0;
+      html += '<div class="rt-platform-card">' +
+        '<div class="rt-platform-name">' + p + '</div>';
+      if (pItems.length === 0) {
+        html += '<div class="rt-platform-empty">No items tagged yet.</div>';
+      } else {
+        html += '<div class="rt-platform-row"><span>Listed</span><b>' + pItems.length + '</b></div>' +
+          '<div class="rt-platform-row"><span>Sold</span><b>' + sold.length + '</b></div>' +
+          '<div class="rt-platform-row"><span>Sell-Through</span><b>' + sellThrough + '%</b></div>' +
+          '<div class="rt-platform-row"><span>Revenue</span><b>' + fmt(revenue) + '</b></div>' +
+          '<div class="rt-platform-row"><span>Profit</span><b>' + fmt(revenue - cost) + '</b></div>';
+      }
+      html += '</div>';
+    });
+    grid.innerHTML = html;
+  }
 
   function addRipple(el, evt) {
     const rect = el.getBoundingClientRect();
@@ -1217,11 +1310,12 @@ auth.onAuthStateChanged(async (user) => {
     const name = document.getElementById('fName').value.trim();
     if (!name) return;
     const category = document.getElementById('fCategory').value;
+    const platform = document.getElementById('fPlatform').value;
     const cost = parseFloat(document.getElementById('fCost').value) || 0;
     const price = parseFloat(document.getElementById('fPrice').value) || 0;
     items.push({
       id: 'item-' + Date.now(),
-      name, category, cost, price,
+      name, category, platform, cost, price,
       status: 'listed',
       listDate: new Date().toISOString(),
       soldDate: null
